@@ -1,6 +1,9 @@
 package baaahs
 
+import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlin.js.JsName
 
 lateinit var main: Main
 
@@ -12,6 +15,7 @@ lateinit var main: Main
 class Main {
     var display = getDisplay()
     var network = FakeNetwork(display = display.forNetwork())
+    var buildTime: Long? = null
 
     var sheepModel = SheepModel()
     val pinky = Pinky(network, display.forPinky())
@@ -32,6 +36,25 @@ class Main {
 
         doRunBlocking {
             delay(200000L)
+        }
+    }
+
+    @JsName("watchForNewBuild")
+    fun watchForNewBuild(buildTime: String?) {
+        display.buildTime = buildTime?.toLong()
+        GlobalScope.launch {
+            while (true) {
+                delay(5000)
+
+                var newBuildTime: Long? = null
+                try {
+                    newBuildTime = getResource("buildTime.txt").toLong()
+                } catch (e: Exception) {
+                }
+                if (newBuildTime != null && newBuildTime != display.buildTime) {
+                    display.haveNewBuild(newBuildTime)
+                }
+            }
         }
     }
 }

@@ -3,10 +3,14 @@ package baaahs
 expect fun getDisplay(): Display
 
 interface Display {
+    var buildTime: Long?
+
     fun forNetwork(): NetworkDisplay
     fun forPinky(): PinkyDisplay
     fun forBrain(): BrainDisplay
     fun forMapper(): MapperDisplay
+
+    fun haveNewBuild(newBuildTime: Long)
 }
 
 interface NetworkDisplay {

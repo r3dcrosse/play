@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Sheep Map 2.0</title>
+  <title>BAAAHS Simulator</title>
   <style>
     body {
       color: #ffffff;
@@ -140,6 +140,8 @@
       <div id="mapperBrainsView"></div>
     </div>
   </div>
+
+  <div>Built: <span id="builtAtSpan"></span></div>
 </div>
 
 <select id="panelSelect"></select>
@@ -147,14 +149,36 @@
 <div id="info2"></div>
 <script type="text/javascript" src="lib/kotlin.js"></script>
 <script type="text/javascript" src="lib/kotlinx-coroutines-core.js"></script>
-<script type="text/javascript" src="play.js"></script>
-
 <script type="text/javascript" src="lib/three.js"></script>
 <script type="text/javascript" src="lib/OrbitControls.js"></script>
-<script type="text/javascript" src="index.js"></script>
+
+<script type="text/javascript">
+  function getQueryVariable(variable) {
+    const query = window.location.search.substring(1);
+    const vars = query.split('&');
+    for (let i = 0; i < vars.length; i++) {
+      const pair = vars[i].split('=');
+      if (decodeURIComponent(pair[0]) === variable) {
+        return decodeURIComponent(pair[1]);
+      }
+    }
+    console.log('Query variable %s not found', variable);
+  }
+
+  // cache busting
+  const buildTimestamp = getQueryVariable('ts');
+  const cacheBustStr = buildTimestamp || new Date().getTime();
+  [
+    "play.js",
+    "index.js",
+  ].forEach(function (value) {
+    document.write(`\x3Cscript type="text/javascript" src="${value}?ts=${cacheBustStr}">\x3C/script>\n`);
+  });
+</script>
 
 <script type="text/javascript">
   let main = new play.baaahs.Main();
+  main.watchForNewBuild(buildTimestamp);
   main.start();
 
 </script>

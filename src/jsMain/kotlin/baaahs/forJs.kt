@@ -1,6 +1,8 @@
 package baaahs
 
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.promise
 import org.w3c.dom.DOMTokenList
 import org.w3c.dom.Document
@@ -30,7 +32,44 @@ actual fun getResource(name: String): String {
 
 actual fun getDisplay(): Display = JsDisplay()
 
-class JsDisplay : Display {
+class JsDisplay() : Display {
+    override var buildTime: Long? = null
+    var newBuildTime: Long? = null
+
+    val builtAtSpan = document.getElementById("builtAtSpan")!!
+
+    init {
+        GlobalScope.launch {
+            while (true) {
+                val myBuildTime: Long? = buildTime
+                if (myBuildTime != null) {
+                    val now = getTimeMillis()
+                    val ageSec = now - myBuildTime
+
+                    val secPerMin = 60
+                    val secPerHour = 60 * 60
+                    val secPerDay = secPerHour * 24
+                    val desc: String
+                    if (ageSec > secPerDay) {
+                        desc = "${(ageSec / secPerDay).toInt()} days ago"
+                    } else if (ageSec > secPerHour * 2) {
+                        desc = "${(ageSec / secPerHour).toInt()} hours ago"
+                    } else {
+                        desc = "${(ageSec / secPerHour).toInt()}:${(ageSec % secPerMin)} ago"
+                    }
+
+                    builtAtSpan.textContent = desc
+                }
+
+                if (newBuildTime != null) {
+                    builtAtSpan.textContent += "... new build available!"
+                }
+
+                delay(5000)
+            }
+        }
+    }
+
     override fun forNetwork(): NetworkDisplay = JsNetworkDisplay(document)
 
     override fun forPinky(): PinkyDisplay =
@@ -41,6 +80,10 @@ class JsDisplay : Display {
 
     override fun forMapper(): MapperDisplay =
         JsMapperDisplay(document.getElementById("mapperView")!!)
+
+    override fun haveNewBuild(newBuildTime: Long) {
+        this.newBuildTime = newBuildTime
+    }
 }
 
 class JsNetworkDisplay(document: Document) : NetworkDisplay {

@@ -65,6 +65,19 @@ kotlin {
     }
 }
 
+task timestamp {
+    outputs.upToDateWhen { false }
+
+    doLast {
+        def contents = "${System.currentTimeMillis()}"
+        new File(project.buildDir, "processedResources/js/main/buildTime.txt").text = contents
+    }
+}
+
+jsProcessResources {
+    dependsOn('timestamp')
+}
+
 //task assembleWeb(type: Sync) {
 //    configurations.each { Configuration c ->
 //        println(c)
